@@ -211,7 +211,7 @@ class ScriptureLibrary
 
 /*
 ===============================================================
-EXTRA CREDIT (Describe enhancements for instructor)
+EXTRA CREDIT 
 ---------------------------------------------------------------
 1. Added ScriptureLibrary class to load multiple scriptures 
    from a file ("scriptures.txt") instead of hardcoding one.
