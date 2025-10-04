@@ -7,269 +7,217 @@ class Program
 {
     static void Main(string[] args)
     {
-        Journal journal = new Journal();
-        PromptManager promptManager = new PromptManager();
-        bool running = true;
+        Console.Clear();
+        Console.WriteLine("=== Scripture Memorizer ===\n");
 
-        while (running)
+        // Load library of scriptures from file
+        List<Scripture> scriptures = ScriptureLibrary.LoadFromFile("scriptures.txt");
+
+        // Added status feedback for user
+        if (scriptures.Count == 0)
         {
-            Console.WriteLine("\nJournal Menu:");
-            Console.WriteLine("1. Write a new entry");
-            Console.WriteLine("2. Display the journal");
-            Console.WriteLine("3. Save the journal to a text file");
-            Console.WriteLine("4. Load the journal from a text file");
-            Console.WriteLine("5. Save the journal to a CSV file (Excel)");
-            Console.WriteLine("6. Load the journal from a CSV file (Excel)");
-            Console.WriteLine("7. Quit");
-            Console.Write("Choose an option (1–7): ");
-            string choice = Console.ReadLine();
-
-            switch (choice)
-            {
-                case "1":
-                    string prompt = promptManager.GetRandomPrompt();
-                    Console.WriteLine($"\nPrompt: {prompt}");
-                    Console.Write("Your response: ");
-                    string response = Console.ReadLine();
-                    string date = DateTime.Now.ToShortDateString();
-                    journal.AddEntry(prompt, response, date);
-                    Console.WriteLine("Entry recorded.");
-                    break;
-
-                case "2":
-                    Console.WriteLine("\n--- Journal Entries ---");
-                    journal.DisplayEntries();
-                    break;
-
-                case "3":
-                    Console.Write("Enter filename to save (e.g., journal.txt): ");
-                    string saveFile = Console.ReadLine();
-                    journal.SaveToFile(saveFile);
-                    Console.WriteLine("Journal saved successfully.");
-                    break;
-
-                case "4":
-                    Console.Write("Enter filename to load (e.g., journal.txt): ");
-                    string loadFile = Console.ReadLine();
-                    journal.LoadFromFile(loadFile);
-                    Console.WriteLine("Journal loaded successfully.");
-                    break;
-
-                case "5":
-                    Console.Write("Enter filename to save (e.g., journal.csv): ");
-                    string saveCsv = Console.ReadLine();
-                    journal.SaveToCsv(saveCsv);
-                    Console.WriteLine("Journal saved as CSV successfully.");
-                    break;
-
-                case "6":
-                    Console.Write("Enter filename to load (e.g., journal.csv): ");
-                    string loadCsv = Console.ReadLine();
-                    journal.LoadFromCsv(loadCsv);
-                    Console.WriteLine("Journal loaded from CSV successfully.");
-                    break;
-
-                case "7":
-                    running = false;
-                    Console.WriteLine("Goodbye!");
-                    break;
-
-                default:
-                    Console.WriteLine("Invalid choice. Please select 1–7.");
-                    break;
-            }
-        }
-    }
-}
-
-/// <summary>
-/// Represents a single journal entry.
-/// </summary>
-class Entry
-{
-    private string prompt;
-    private string response;
-    private string date;
-
-    public Entry(string prompt, string response, string date)
-    {
-        this.prompt = prompt;
-        this.response = response;
-        this.date = date;
-    }
-
-    public void Display()
-    {
-        Console.WriteLine($"{date} - {prompt}");
-        Console.WriteLine($"{response}\n");
-    }
-
-    public string ToFileString()
-    {
-        return $"{date}|{prompt}|{response}";
-    }
-
-    public static Entry FromFileString(string fileString)
-    {
-        var parts = fileString.Split('|');
-        return new Entry(parts[1], parts[2], parts[0]);
-    }
-
-    public string ToCsvString()
-    {
-        return $"{EscapeCsv(date)},{EscapeCsv(prompt)},{EscapeCsv(response)}";
-    }
-
-    public static Entry FromCsvString(string csvLine)
-    {
-        // Basic CSV parsing (splits on commas outside quotes)
-        var parts = ParseCsvLine(csvLine);
-        return new Entry(parts[1], parts[2], parts[0]);
-    }
-
-    // --- Helper methods for CSV escaping/parsing ---
-    private static string EscapeCsv(string field)
-    {
-        if (field.Contains(",") || field.Contains("\""))
-        {
-            field = field.Replace("\"", "\"\"");
-            return $"\"{field}\"";
-        }
-        return field;
-    }
-
-    private static List<string> ParseCsvLine(string line)
-    {
-        List<string> result = new List<string>();
-        bool inQuotes = false;
-        string current = "";
-
-        foreach (char c in line)
-        {
-            if (c == '"' && !inQuotes)
-            {
-                inQuotes = true;
-            }
-            else if (c == '"' && inQuotes)
-            {
-                inQuotes = false;
-            }
-            else if (c == ',' && !inQuotes)
-            {
-                result.Add(current.Trim());
-                current = "";
-            }
-            else
-            {
-                current += c;
-            }
-        }
-
-        result.Add(current.Trim());
-        return result;
-    }
-}
-
-/// <summary>
-/// Represents the Journal, which stores a collection of entries.
-/// </summary>
-class Journal
-{
-    private List<Entry> entries = new List<Entry>();
-
-    public void AddEntry(string prompt, string response, string date)
-    {
-        entries.Add(new Entry(prompt, response, date));
-    }
-
-    public void DisplayEntries()
-    {
-        if (entries.Count == 0)
-        {
-            Console.WriteLine("No entries found.");
+            Console.WriteLine("No scriptures found. Please ensure 'scriptures.txt' exists and is formatted correctly.");
+            return;
         }
         else
         {
-            foreach (var entry in entries)
+            Console.WriteLine($"Loaded {scriptures.Count} scripture(s) successfully.\n");
+        }
+
+        Console.WriteLine("Press Enter to begin memorizing...");
+        Console.ReadLine();
+
+        // Randomly select a scripture to memorize
+        Random random = new Random();
+        Scripture selected = scriptures[random.Next(scriptures.Count)];
+
+        // Main memorization loop
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine(selected.GetDisplayText());
+            Console.WriteLine("\nPress Enter to hide words, or type 'quit' to exit:");
+            string input = Console.ReadLine();
+
+            if (input?.Trim().ToLower() == "quit")
+                break;
+
+            if (selected.AllWordsHidden())
             {
-                entry.Display();
+                Console.Clear();
+                Console.WriteLine(selected.GetDisplayText());
+                Console.WriteLine("\nAll words hidden — great job!");
+                break;
             }
-        }
-    }
 
-    public void SaveToFile(string filename)
-    {
-        var lines = entries.Select(e => e.ToFileString()).ToArray();
-        File.WriteAllLines(filename, lines);
-    }
+            selected.HideRandomWords();
+        }
 
-    public void LoadFromFile(string filename)
-    {
-        if (File.Exists(filename))
-        {
-            entries.Clear();
-            var lines = File.ReadAllLines(filename);
-            foreach (var line in lines)
-            {
-                entries.Add(Entry.FromFileString(line));
-            }
-        }
-        else
-        {
-            Console.WriteLine("File not found.");
-        }
-    }
-
-    public void SaveToCsv(string filename)
-    {
-        List<string> lines = new List<string>();
-        lines.Add("Date,Prompt,Response"); // Header row
-        foreach (var entry in entries)
-        {
-            lines.Add(entry.ToCsvString());
-        }
-        File.WriteAllLines(filename, lines);
-    }
-
-    public void LoadFromCsv(string filename)
-    {
-        if (File.Exists(filename))
-        {
-            entries.Clear();
-            var lines = File.ReadAllLines(filename).Skip(1); // Skip header
-            foreach (var line in lines)
-            {
-                entries.Add(Entry.FromCsvString(line));
-            }
-        }
-        else
-        {
-            Console.WriteLine("File not found.");
-        }
+        Console.WriteLine("\nProgram ended.");
     }
 }
 
-/// <summary>
-/// Manages random journal prompts.
-/// </summary>
-class PromptManager
+/* ============================================================
+   CLASS: Reference — represents scripture reference details
+   ============================================================ */
+class Reference
 {
-    private List<string> prompts = new List<string>()
-    {
-        "Who was the most interesting person I interacted with today?",
-        "What was the best part of my day?",
-        "How did I see the hand of the Lord in my life today?",
-        "What was the strongest emotion I felt today?",
-        "If I had one thing I could do over today, what would it be?",
-        "What is one thing I learned today?",
-        "What made me laugh today?"
-    };
+    private string _book;
+    private int _chapter;
+    private int _startVerse;
+    private int _endVerse;
 
-    private Random random = new Random();
-
-    public string GetRandomPrompt()
+    public Reference(string book, int chapter, int verse)
     {
-        int index = random.Next(prompts.Count);
-        return prompts[index];
+        _book = book;
+        _chapter = chapter;
+        _startVerse = verse;
+        _endVerse = verse;
+    }
+
+    public Reference(string book, int chapter, int startVerse, int endVerse)
+    {
+        _book = book;
+        _chapter = chapter;
+        _startVerse = startVerse;
+        _endVerse = endVerse;
+    }
+
+    public string GetDisplayText()
+    {
+        if (_startVerse == _endVerse)
+            return $"{_book} {_chapter}:{_startVerse}";
+        else
+            return $"{_book} {_chapter}:{_startVerse}-{_endVerse}";
     }
 }
+
+/* ============================================================
+   CLASS: Word — represents an individual word in scripture
+   ============================================================ */
+class Word
+{
+    private string _text;
+    private bool _isHidden;
+
+    public Word(string text)
+    {
+        _text = text;
+        _isHidden = false;
+    }
+
+    public void Hide()
+    {
+        _isHidden = true;
+    }
+
+    public bool IsHidden()
+    {
+        return _isHidden;
+    }
+
+    public string GetDisplayText()
+    {
+        return _isHidden ? new string('_', _text.Length) : _text;
+    }
+}
+
+/* ============================================================
+   CLASS: Scripture — holds words and logic for hiding/display
+   ============================================================ */
+class Scripture
+{
+    private Reference _reference;
+    private List<Word> _words;
+    private Random _random = new Random();
+
+    public Scripture(Reference reference, string text)
+    {
+        _reference = reference;
+        _words = text.Split(' ').Select(word => new Word(word)).ToList();
+    }
+
+    public void HideRandomWords()
+    {
+        var visibleWords = _words.Where(w => !w.IsHidden()).ToList();
+        int wordsToHide = Math.Min(3, visibleWords.Count);
+
+        for (int i = 0; i < wordsToHide; i++)
+        {
+            int index = _random.Next(visibleWords.Count);
+            visibleWords[index].Hide();
+            visibleWords.RemoveAt(index);
+        }
+    }
+
+    public string GetDisplayText()
+    {
+        string text = string.Join(" ", _words.Select(w => w.GetDisplayText()));
+        return $"{_reference.GetDisplayText()}\n{text}";
+    }
+
+    public bool AllWordsHidden()
+    {
+        return _words.All(w => w.IsHidden());
+    }
+}
+
+/* ============================================================
+   CLASS: ScriptureLibrary — loads multiple scriptures from file
+   ============================================================ */
+class ScriptureLibrary
+{
+    public static List<Scripture> LoadFromFile(string filename)
+    {
+        List<Scripture> scriptures = new List<Scripture>();
+
+        if (!File.Exists(filename))
+        {
+            Console.WriteLine($"File '{filename}' not found.");
+            return scriptures;
+        }
+
+        foreach (string line in File.ReadLines(filename))
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            string[] parts = line.Split('|');
+            if (parts.Length < 5)
+            {
+                Console.WriteLine($"Skipping invalid line: {line}");
+                continue;
+            }
+
+            try
+            {
+                string book = parts[0].Trim();
+                int chapter = int.Parse(parts[1]);
+                int startVerse = int.Parse(parts[2]);
+                int endVerse = int.Parse(parts[3]);
+                string text = parts[4].Trim();
+
+                Reference reference = new Reference(book, chapter, startVerse, endVerse);
+                scriptures.Add(new Scripture(reference, text));
+            }
+            catch
+            {
+                Console.WriteLine($"Error parsing line: {line}");
+            }
+        }
+
+        return scriptures;
+    }
+}
+
+/*
+===============================================================
+EXTRA CREDIT (Describe enhancements for instructor)
+---------------------------------------------------------------
+1. Added ScriptureLibrary class to load multiple scriptures 
+   from a file ("scriptures.txt") instead of hardcoding one.
+2. Program randomly selects a scripture at runtime to 
+   encourage broader memorization.
+3. Includes user feedback showing how many scriptures loaded.
+4. Includes error handling for file issues and bad formatting.
+===============================================================
+*/
