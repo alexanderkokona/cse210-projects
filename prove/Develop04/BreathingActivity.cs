@@ -1,24 +1,42 @@
-class BreathingActivity : Activity
-{
-    public BreathingActivity()
-    {
-        Name = "Breathing Activity";
-        Description = "This activity will help you relax by walking you through breathing in and out slowly.";
-    }
+using System;
+using System.Threading;
 
-    public void Perform()
+namespace MindfulnessProgram
+{
+    class BreathingActivity : Activity
     {
-        Start();
-        int elapsed = 0;
-        while (elapsed < Duration)
+        public BreathingActivity()
         {
-            Console.WriteLine("Breathe in...");
-            Thread.Sleep(4000);
-            elapsed += 4;
-            Console.WriteLine("Breathe out...");
-            Thread.Sleep(4000);
-            elapsed += 4;
+            Name = "Breathing Activity";
+            Description = "This activity will help you relax by walking you through breathing in and out slowly.";
         }
-        End();
+
+        public override void Perform()
+        {
+            Start();
+            int elapsed = 0;
+            while (elapsed < Duration)
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                AnimateBreath("Breathe in", 4);
+                elapsed += 4;
+                Console.ForegroundColor = ConsoleColor.Green;
+                AnimateBreath("Breathe out", 4);
+                elapsed += 4;
+            }
+            Console.ResetColor();
+            End();
+        }
+
+        private void AnimateBreath(string message, int seconds)
+        {
+            Console.Write(message + " ");
+            for (int i = 0; i < seconds; i++)
+            {
+                Console.Write(".");
+                Thread.Sleep(1000);
+            }
+            Console.WriteLine();
+        }
     }
 }
