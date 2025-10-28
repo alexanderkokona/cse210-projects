@@ -1,11 +1,11 @@
 using System;
 
-abstract class Workout
+public abstract class Workout
 {
-    public DateTime Date;
-    public int DurationMinutes;
-    public int Intensity;
+    public string Name { get; set; } = string.Empty;
+    public int DurationMinutes { get; set; }
+    public int Intensity { get; set; }
+    public DateTime Date { get; set; }
 
-    public abstract double CalculateCaloriesBurned();
-    public virtual string GetWorkoutSummary() => "Workout summary not implemented.";
+    public abstract string GetSummary();
 }

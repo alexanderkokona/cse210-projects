@@ -1,17 +1,12 @@
 using System;
 
-class CardioWorkout : Workout
+public class CardioWorkout : Workout
 {
-    public double DistanceMiles;
-    public double Pace;
+    public double DistanceMiles { get; set; }
+    public double Pace { get; set; } // minutes per mile
 
-    public override double CalculateCaloriesBurned()
+    public override string GetSummary()
     {
-        return DurationMinutes * 8; // rough estimate
-    }
-
-    public override string GetWorkoutSummary()
-    {
-        return $"Cardio Workout on {Date.ToShortDateString()} | Duration: {DurationMinutes} mins | Distance: {DistanceMiles} mi";
+        return $"{Date.ToShortDateString()} - Cardio: {Name}, Duration: {DurationMinutes} mins, Distance: {DistanceMiles} mi, Intensity: {Intensity}";
     }
 }
